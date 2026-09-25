@@ -1,16 +1,8 @@
-/* dashboard.js — wiring dashboard: DOM + Chart + Firestore + timer.
-   Keputusan domain (ambang, tren, skema, warna) milik Barn; file ini hanya memanggilnya.
-   Firebase SDK dimuat dinamis HANYA bila dikonfigurasi — mode lokal tanpaพาณิช beban. */
+/* dashboard.js — wiring dashboard: DOM + Chart + timer.
+   Keputusan domain milik Barn; persistensi milik Store; file ini hanya memanggilnya. */
 
 (function () {
   "use strict";
-
-  var SDK = [
-    "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",
-    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
-  ];
-
-  var db = null;
 
   function el(id) { return document.getElementById(id); }
 
@@ -20,37 +12,6 @@
     d.textContent = new Date().toLocaleTimeString("id-ID") + "  " + msg;
     box.prepend(d);
     while (box.children.length > 40) box.lastChild.remove();
-  }
-
-  function push(col, doc) {
-    if (!db) return;
-    doc.t = firebase.firestore.FieldValue.serverTimestamp();
-    db.collection(col).add(doc).catch(function () {});
-  }
-
-  function loadScript(src, done) {
-    var tag = document.createElement("script");
-    tag.src = src;
-    tag.onload = function () { done(null); };
-    tag.onerror = function () { done(new Error("gagal memuat " + src)); };
-    document.head.appendChild(tag);
-  }
-
-  function initFirestore(done) {
-    loadScript(SDK[0], function (e1) {
-      if (e1) return done(e1);
-      loadScript(SDK[1], function (e2) {
-        if (e2) return done(e2);
-        try {
-          firebase.initializeApp(window.FIREBASE_CONFIG);
-          db = firebase.firestore();
-          el("mode").textContent = "tersambung Firestore";
-          el("firestore-note").textContent =
-            "Tersambung Firestore — batch telemetri diarsipkan tiap 1 menit ke koleksi telemetry, siklus ke events.";
-          done(null);
-        } catch (err) { db = null; done(err); }
-      });
-    });
   }
 
   function boot() {
@@ -138,7 +99,7 @@
 
       if (!paint.lastBatch || now - paint.lastBatch > 60000) {
         paint.lastBatch = now;
-        push("telemetry", Barn.telemetryDoc(s));
+        Store.saveTelemetry(Barn.telemetryDoc(s));
       }
     }
 
@@ -148,7 +109,7 @@
       s.cooldownUntil = now + Barn.CYCLE.pumpMs + Barn.CYCLE.dryMs;
       s.pump = "menyemprot"; s.fan = "menyala";
       log("SIKLUS MULAI — " + why);
-      push("events", Barn.eventDoc("cycle_start", why));
+      Store.saveEvent("cycle_start", why);
     }
 
     el("btn-override").addEventListener("click", function () {
@@ -164,6 +125,12 @@
     setInterval(paint, 5000);
   }
 
-  if (window.FIREBASE_CONFIGURED) initFirestore(function () { boot(); });
-  else boot();
+  Store.init(function () {
+    if (Store.isLive()) {
+      el("mode").textContent = "tersambung Firestore";
+      el("firestore-note").textContent =
+        "Tersambung Firestore — batch telemetri diarsipkan tiap 1 menit ke koleksi telemetry, siklus ke events.";
+    }
+    boot();
+  });
 })();

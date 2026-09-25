@@ -14,18 +14,25 @@ service cloud.firestore {
           ["t", "thi", "suhu", "humidity", "standing", "lying", "occluded",
            "zones", "pump", "fan", "synthetic"])
         && request.resource.data.thi is number
+        && request.resource.data.suhu is number
+        && request.resource.data.humidity is int
+        && request.resource.data.t is timestamp
         && request.resource.data.standing is int
         && request.resource.data.lying is int
         && request.resource.data.occluded is int
+        && (request.resource.data.standing + request.resource.data.lying
+            + request.resource.data.occluded) == 16
         && zoneMapOk(request.resource.data.zones)
         && request.resource.data.pump in ["mati", "menyemprot"]
+        && request.resource.data.fan in ["mati", "menyala", "pengeringan"]
         && request.resource.data.synthetic is bool;
     }
     match /events/{doc} {
       allow read: if true;
       allow write: if request.resource.data.keys().hasOnly(["t", "kind", "reason", "synthetic"])
         && request.resource.data.kind is string
-        && request.resource.data.reason is string;
+        && request.resource.data.reason is string
+        && request.resource.data.synthetic is bool;
     }
   }
 }

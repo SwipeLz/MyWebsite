@@ -23,10 +23,9 @@ describe("mock deterministik", () => {
     assert.equal(sum, 16 - s.occluded);
     assert.equal(s.standing + s.lying, 16 - s.occluded);
   });
-  it("kompatibilitas interface lama tetap ada", () => {
-    assert.deepEqual(Mock.ZONES, ["kipas", "lorong", "terbuka", "pakan", "minum"]);
-    assert.equal(Mock.HERD, 16);
-    assert.equal(Mock.band(72).key, "danger");
-    assert.equal(Mock.ratio({ standing: 6, lying: 6 }), 0.5);
+  it("interface ramping: hanya fresh/step, tanpa shim Barn", () => {
+    assert.deepEqual(Object.keys(Mock).sort(), ["fresh", "step"]);
+    assert.equal(Mock.band, undefined);
+    assert.equal(Mock.ZONES, undefined);
   });
 });

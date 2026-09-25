@@ -72,14 +72,8 @@
     return s;
   }
 
-  var Mock = {
-    ZONES: B().ZONES.map(function (z) { return z.key; }),
-    HERD: B().HERD,
-    fresh: freshState,
-    step: step,
-    band: function (thi) { return B().band(thi); },
-    ratio: function (s) { return B().ratio(s.standing, s.lying); }
-  };
+  // Interface ramping: hanya fresh/step. Ambang, zona, dan ratio milik Barn.
+  var Mock = { fresh: freshState, step: step };
 
   global.BarnMock = Mock;
   if (typeof module !== "undefined" && module.exports) module.exports = Mock;
