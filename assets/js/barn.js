@@ -26,6 +26,9 @@
   // Kenaikan standing ratio minimum agar dihitung "naik" (sesuai tabel kontrol).
   var TREND_EPS = 0.02;
 
+  // Warna status fungsional — satu-satunya sumber; halaman tidak boleh hard-code.
+  var STATUS = { ok: "#166534", warn: "#92400e", danger: "#b91c1c" };
+
   function band(thi) {
     if (thi >= THI_ACT) return { key: "danger", label: "Intervensi" };
     if (thi >= THI_WARN) return { key: "warn", label: "Peringatan awal" };
@@ -96,6 +99,7 @@
     THI_ACT: THI_ACT,
     HERD: HERD,
     ZONES: ZONES,
+    STATUS: STATUS,
     CYCLE: CYCLE,
     TREND_EPS: TREND_EPS,
     band: band,

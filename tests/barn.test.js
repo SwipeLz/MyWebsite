@@ -63,3 +63,9 @@ describe("telemetryDoc", () => {
     assert.equal(doc.thi, 73.46);
   });
 });
+
+describe("STATUS", () => {
+  it("satu-satunya sumber warna status fungsional", () => {
+    assert.deepEqual(Barn.STATUS, { ok: "#166534", warn: "#92400e", danger: "#b91c1c" });
+  });
+});

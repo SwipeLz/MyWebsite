@@ -87,7 +87,7 @@ a:hover { color: var(--ink); }
   color: var(--ink);
   font-weight: bold;
   font-size: 0.9rem;
-  padding: 6px 12px;
+  padding: 10px 14px;
   border: 2px solid transparent;
   border-radius: 6px;
 }
@@ -182,6 +182,7 @@ a:hover { color: var(--ink); }
 .badge.info { color: var(--aqua-deep); background: #e0f5fa; }
 
 /* ---- Tabel ---- */
+.tablewrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
 caption { text-align: left; font-weight: bold; padding-block: 8px; }
 th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; }
