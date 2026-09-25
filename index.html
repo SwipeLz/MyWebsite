@@ -85,26 +85,26 @@
 <footer>Smart Dairy Farming · Friesian Holstein · data mock berlabel SYNTHETIC · <a href="kontrol.html">logika kontrol</a></footer>
 
 <script src="assets/js/barn.js"></script>
+<script src="assets/js/readout.js"></script>
 <script src="assets/js/mock.js"></script>
 <script>
 (function () {
   var s = BarnMock.step(BarnMock.fresh());
   function paint() {
     s = BarnMock.step(s);
-    var b = Barn.band(s.thi);
-    document.getElementById("hero-thi").textContent = s.thi.toFixed(1);
+    var vm = Readout.summarize(s, null, Date.now());
+    document.getElementById("hero-thi").textContent = vm.thiText;
     document.getElementById("hero-fill").style.transform =
-      "scaleX(" + (1 - Barn.thiFill(s.thi)).toFixed(3) + ")";
+      "scaleX(" + vm.fillScale.toFixed(3) + ")";
     var badge = document.getElementById("hero-band");
-    badge.textContent = b.label + " · " + s.suhu.toFixed(1) + "°C · " + s.humidity + "%";
-    badge.className = "badge " + b.key;
-    document.getElementById("hero-ratio").textContent = Barn.pct(Barn.ratio(s.standing, s.lying));
-    document.getElementById("hero-count").textContent =
-      s.standing + " berdiri · " + s.lying + " berbaring · " + s.occluded + " occluded (excluded)";
-    document.getElementById("hero-pump").textContent = "pompa: " + s.pump + " · kipas: " + s.fan;
+    badge.textContent = vm.bandLabel + " · " + vm.climateText;
+    badge.className = "badge " + vm.bandKey;
+    document.getElementById("hero-ratio").textContent = Barn.pct(vm.ratio);
+    document.getElementById("hero-count").textContent = vm.countText;
+    document.getElementById("hero-pump").textContent = vm.pumpText + " · " + vm.fanText;
   }
   paint();
-  setInterval(paint, 5000);
+  setInterval(paint, Barn.TIMING.tickMs);
 })();
 </script>
 </body>

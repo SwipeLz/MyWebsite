@@ -4,6 +4,6 @@
   "private": true,
   "description": "Website v1 Smart Dairy Farming — diperlukan hanya untuk menjalankan tes (node:test, tanpa dependensi).",
   "scripts": {
-    "test": "node --test tests/barn.test.js tests/mock.test.js tests/store.test.js"
+    "test": "node --test tests/barn.test.js tests/mock.test.js tests/store.test.js tests/readout.test.js"
   }
 }

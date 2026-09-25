@@ -54,33 +54,27 @@
     function paint() {
       var now = Date.now();
       s = BarnMock.step(s);
-      var b = Barn.band(s.thi);
-      var r = Barn.ratio(s.standing, s.lying);
-      var prev = avgTail(3);
+    var prev = avgTail(Barn.TIMING.trendWindow);
+    var vm = Readout.summarize(s, prev, now);
 
-      el("d-thi").textContent = s.thi.toFixed(1);
-      el("d-fill").style.transform = "scaleX(" + (1 - Barn.thiFill(s.thi)).toFixed(3) + ")";
-      var badge = el("d-band");
-      badge.textContent = Barn.actionFor(b.key);
-      badge.className = "badge " + b.key;
-      el("d-climate").textContent = s.suhu.toFixed(1) + "°C · kelembapan " + s.humidity + "%";
+    el("d-thi").textContent = vm.thiText;
+    el("d-fill").style.transform = "scaleX(" + vm.fillScale.toFixed(3) + ")";
+    var badge = el("d-band");
+    badge.textContent = vm.bandAction;
+    badge.className = "badge " + vm.bandKey;
+    el("d-climate").textContent = vm.climateText;
 
-      el("d-ratio").textContent = Barn.pct(r) + " berdiri";
-      el("d-count").textContent =
-        s.standing + " berdiri · " + s.lying + " berbaring · " + s.occluded + " occluded (excluded)";
-      var d = prev === null ? 0 : r - prev;
-      el("d-trend").textContent =
-        "tren: " + (d > Barn.TREND_EPS ? "naik ▲" : (d < -Barn.TREND_EPS ? "turun ▼" : "stabil ▬"));
+    el("d-ratio").textContent = vm.ratioText;
+    el("d-count").textContent = vm.countText;
+    el("d-trend").textContent = vm.trendText;
 
-      el("d-pump").textContent = "pompa: " + s.pump;
-      el("d-fan").textContent = "kipas: " + s.fan;
-      el("d-timer").textContent =
-        now < s.pumpUntil ? "menyemprot: " + Math.ceil((s.pumpUntil - now) / 1000) + " dtk tersisa"
-        : (now < s.cooldownUntil ? "cooldown: " + Math.ceil((s.cooldownUntil - now) / 1000) + " dtk tersisa" : "cooldown: bebas — siklus boleh aktif");
-      el("btn-cancel").disabled = !(now < s.pumpUntil);
+    el("d-pump").textContent = vm.pumpText;
+    el("d-fan").textContent = vm.fanText;
+    el("d-timer").textContent = vm.timerText;
+    el("btn-cancel").disabled = vm.cancelDisabled;
 
-      hist.push({ r: r, thi: s.thi });
-      if (hist.length > 60) hist.shift();
+    hist.push({ r: vm.ratio, thi: s.thi });
+    if (hist.length > Barn.TIMING.histMax) hist.shift();
       trend.data.labels = hist.map(function (_, i) { return i; });
       trend.data.datasets[0].data = hist.map(function (h) { return +(h.r * 100).toFixed(1); });
       trend.data.datasets[1].data = hist.map(function (h) { return +h.thi.toFixed(1); });
@@ -92,12 +86,12 @@
         if (node) node.textContent = s.zones[z.key];
       });
 
-      // Policy milik Barn: THI ≥72 DAN standing naik (tren), plus cooldown.
-      var verdict = Barn.decide(
-        { thi: s.thi, ratio: r, pump: s.pump, cooldownUntil: s.cooldownUntil, now: now }, prev);
-      if (verdict.fire) startCycle(verdict.reason);
+    // Policy milik Barn: THI ≥72 DAN standing naik (tren), plus cooldown.
+    var verdict = Barn.decide(
+      { thi: s.thi, ratio: vm.ratio, pump: s.pump, cooldownUntil: s.cooldownUntil, now: now }, prev);
+    if (verdict.fire) startCycle(verdict.reason);
 
-      if (!paint.lastBatch || now - paint.lastBatch > 60000) {
+    if (!paint.lastBatch || now - paint.lastBatch > Barn.TIMING.batchMs) {
         paint.lastBatch = now;
         Store.saveTelemetry(Barn.telemetryDoc(s));
       }
@@ -122,15 +116,14 @@
 
     log("Dashboard aktif — mock SYNTHETIC tiap 5 detik.");
     paint();
-    setInterval(paint, 5000);
+    setInterval(paint, Barn.TIMING.tickMs);
   }
 
+  boot();
   Store.init(function () {
-    if (Store.isLive()) {
-      el("mode").textContent = "tersambung Firestore";
-      el("firestore-note").textContent =
-        "Tersambung Firestore — batch telemetri diarsipkan tiap 1 menit ke koleksi telemetry, siklus ke events.";
-    }
-    boot();
+    if (!Store.isLive()) return;
+    el("mode").textContent = "tersambung Firestore";
+    el("firestore-note").textContent =
+      "Tersambung Firestore — batch telemetri diarsipkan tiap 1 menit ke koleksi telemetry, siklus ke events.";
   });
 })();

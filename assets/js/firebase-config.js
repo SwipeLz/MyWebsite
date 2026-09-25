@@ -1,6 +1,6 @@
 /* Tempel konfigurasi project Firebase kamu di sini, lalu deploy.
    Ambil dari: console.firebase.google.com → Project settings → Your apps → firebaseConfig.
-   Selama masih diawali "GANTI_", website jalan 100% lokal (mode mock). */
+   Selama ada field yang kosong/placeholder, website jalan 100% lokal (mode mock). */
 
 var FIREBASE_CONFIG = {
   apiKey: "GANTI_DENGAN_API_KEY",
@@ -11,6 +11,15 @@ var FIREBASE_CONFIG = {
   appId: "GANTI_DENGAN_APP_ID"
 };
 
+function FIREBASE_IS_CONFIGURED(cfg) {
+  if (!cfg || typeof cfg !== "object") return false;
+  var keys = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"];
+  for (var i = 0; i < keys.length; i++) {
+    var v = cfg[keys[i]];
+    if (typeof v !== "string" || !v || v.indexOf("GANTI_") === 0) return false;
+  }
+  return true;
+}
+
 window.FIREBASE_CONFIGURED =
-  typeof FIREBASE_CONFIG !== "undefined" &&
-  FIREBASE_CONFIG.apiKey.slice(0, 6) !== "GANTI_";
+  typeof FIREBASE_CONFIG !== "undefined" && FIREBASE_IS_CONFIGURED(FIREBASE_CONFIG);

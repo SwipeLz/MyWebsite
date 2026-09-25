@@ -26,6 +26,10 @@
   // Kenaikan standing ratio minimum agar dihitung "naik" (sesuai tabel kontrol).
   var TREND_EPS = 0.02;
 
+  // Ritme dashboard (ms): tick render, jendela tren, kapasitas histori
+  // (= jendela evaluasi 5 menit), interval arsip. Satu-satunya sumber angka waktu.
+  var TIMING = { tickMs: 5000, trendWindow: 3, histMax: 60, batchMs: 60000 };
+
   // Warna status fungsional — satu-satunya sumber; halaman tidak boleh hard-code.
   var STATUS = { ok: "#166534", warn: "#92400e", danger: "#b91c1c" };
 
@@ -102,6 +106,7 @@
     STATUS: STATUS,
     CYCLE: CYCLE,
     TREND_EPS: TREND_EPS,
+    TIMING: TIMING,
     band: band,
     actionFor: actionFor,
     ratio: ratio,
