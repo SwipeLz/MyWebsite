@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Prototipe v1: baca publik, tulis publik. Kunci sebelum produksi
+    // (mis. requireAuth) setelah Auth ditambahkan di luar v1.
+    match /telemetry/{doc} { allow read: if true; allow write: if true; }
+    match /events/{doc} { allow read: if true; allow write: if true; }
+  }
+}

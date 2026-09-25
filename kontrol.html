@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logika Kontrol — Smart Dairy Farming</title>
+<meta name="description" content="Aturan kapan sprinkler boleh aktif: THI + konfirmasi CCTV, hysteresis, cooldown, dan jadwal evaluasi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z' fill='%230097b9'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="taskbar">
+  <a class="brand" href="index.html" aria-label="Smart Dairy Farming — beranda">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z" fill="#0097b9" stroke="#101e33" stroke-width="1.5"/></svg>
+    <b>Smart Dairy Farming</b>
+  </a>
+  <nav aria-label="Navigasi utama">
+    <a href="index.html">Konsep</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="kontrol.html" aria-current="page">Logika kontrol</a>
+  </nav>
+</header>
+
+<main>
+  <section class="window" aria-labelledby="aturan">
+    <div class="titlebar"><span>aturan main sprinkler</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h1 id="aturan">Satu sinyal tidak cukup.</h1>
+      <p>THI memberi konteks, kamera memberi konfirmasi. Sprinkler hanya aktif bila keduanya sepakat — dan tidak pernah dua siklus berturut tanpa jeda.</p>
+      <table>
+        <caption>Kondisi → tindakan (rancangan awal, wajib kalibrasi lapangan)</caption>
+        <thead><tr><th scope="col">Kondisi</th><th scope="col">Tindakan</th></tr></thead>
+        <tbody>
+          <tr><td>THI 68–72, atau standing ratio naik</td><td>Kipas aktif, frekuensi pemantauan ditingkatkan.</td></tr>
+          <tr><td>THI ≥ 72 <strong>dan</strong> standing ratio naik</td><td>Sprinkler boleh aktif: semprot 1,5 menit.</td></tr>
+          <tr><td>THI tinggi <strong>dan</strong> heavy breathing naik (kamera miring valid)</td><td>Sprinkler boleh aktif; bila kamera overhead, parameter ini dilewati.</td></tr>
+          <tr><td>Standing naik <strong>dan</strong> sapi berkumpul di zona kipas</td><td>Status peringatan; intervensi bila persisten melewati durasi.</td></tr>
+          <tr><td>Setelah semprot 1,5 menit</td><td>Kipas mengeringkan 5–8 menit. Lantai becek = kegagalan.</td></tr>
+          <tr><td>Indikator membaik</td><td><strong>Jangan</strong> buka siklus baru — hysteresis + cooldown wajib.</td></tr>
+          <tr><td>Indikator tetap buruk</td><td>Siklus berikutnya dalam batas aman + peringatan ke operator.</td></tr>
+        </tbody>
+      </table>
+      <p class="notice">Standing ratio = sapi berdiri ÷ sapi terlihat dan dapat dinilai. Sapi <strong>occluded</strong> di-exclude dari pembagi — tidak pernah dihitung sebagai sapi normal.</p>
+    </div>
+  </section>
+
+  <section class="window" aria-labelledby="uji">
+    <div class="titlebar"><span>jadwal evaluasi</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h2 id="uji">Ukur sapinya, bukan pompanya.</h2>
+      <table>
+        <caption>Yang dicatat di tiap titik waktu</caption>
+        <thead><tr><th scope="col">Waktu</th><th scope="col">Data</th></tr></thead>
+        <tbody>
+          <tr><td>Sebelum semprot</td><td>THI, standing/lying ratio, sebaran zona, heavy breathing bila valid, status kipas.</td></tr>
+          <tr><td>Saat semprot</td><td>Durasi pompa dan kipas, status nozzle, perpindahan posisi sapi.</td></tr>
+          <tr><td>5 menit sesudah</td><td>Standing/lying ratio, distribusi zona, heavy breathing bila valid.</td></tr>
+          <tr><td>10–15 menit sesudah</td><td>Pemulihan perilaku; perlu siklus berikutnya atau tidak.</td></tr>
+          <tr><td>Harian</td><td>Durasi pompa, jumlah siklus, kondisi lantai, gangguan komunikasi, data hilang.</td></tr>
+        </tbody>
+      </table>
+      <p>Intervensi diberikan per kelompok/area, jadi 16 sapi bukan 16 unit independen — analisis memakai pengamatan berulang per waktu dan hari, dengan memperhitungkan jam makan, pemerahan, hujan, dan aktivitas manusia.</p>
+      <p><a class="btn primary" href="dashboard.html" style="text-decoration:none">Coba aturannya di dashboard</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>Smart Dairy Farming · ambang angka rancangan awal — kalibrasi ulang dengan data kandang lokal</footer>
+</body>
+</html>

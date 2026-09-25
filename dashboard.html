@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Kandang — Smart Dairy Farming</title>
+<meta name="description" content="Pantauan THI, standing/lying ratio, distribusi zona, dan status aktuator kandang sapi perah.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z' fill='%230097b9'/%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<header class="taskbar">
+  <a class="brand" href="index.html" aria-label="Smart Dairy Farming — beranda">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z" fill="#0097b9" stroke="#101e33" stroke-width="1.5"/></svg>
+    <b>Smart Dairy Farming</b>
+  </a>
+  <nav aria-label="Navigasi utama">
+    <a href="index.html">Konsep</a>
+    <a href="dashboard.html" aria-current="page">Dashboard</a>
+    <a href="kontrol.html">Logika kontrol</a>
+  </nav>
+</header>
+
+<main>
+  <section class="window hero-flash" aria-labelledby="dash">
+    <div class="titlebar"><span>dashboard kandang — <span id="mode">mode lokal (SYNTHETIC)</span></span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h1 id="dash">Kondisi kandang, lima detik.</h1>
+      <p class="notice" id="firestore-note">Firestore belum dikonfigurasi — angka tersimpan di browser saja. Tempel <code>firebaseConfig</code> di <code>assets/js/firebase-config.js</code> untuk mengarsipkan telemetri.</p>
+      <div class="grid">
+        <div class="stat">
+          <span class="label">THI · suhu · kelembapan</span>
+          <span class="big-read" id="d-thi">–</span>
+          <div class="loadbar" role="img" aria-label="Bilah level THI"><div class="fill" id="d-fill"></div><div class="ticks"><span>60</span><span>68</span><span>72</span><span>78</span><span>85</span></div></div>
+          <span class="badge info" id="d-band">memuat…</span>
+          <span class="label" id="d-climate">–</span>
+        </div>
+        <div class="stat">
+          <span class="label">Standing / lying ratio</span>
+          <span class="big-read" id="d-ratio">–</span>
+          <span class="label" id="d-count">–</span>
+          <span class="badge info" id="d-trend">tren: –</span>
+        </div>
+        <div class="stat">
+          <span class="label">Aktuator</span>
+          <span class="big-read" id="d-pump" style="font-size:1.6rem">–</span>
+          <span class="label" id="d-fan">–</span>
+          <span class="label px" id="d-timer">cooldown: –</span>
+          <p style="margin:8px 0 0;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn primary" id="btn-override" type="button">Semprot manual 1,5 mnt</button>
+            <button class="btn danger" id="btn-cancel" type="button" disabled>Batalkan</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="window" aria-labelledby="grafik">
+    <div class="titlebar"><span>grafik perilaku (SYNTHETIC)</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h2 id="grafik">Apakah sapi membaik?</h2>
+      <div class="grid">
+        <div>
+          <h3>Standing ratio vs THI</h3>
+          <canvas id="ch-trend" height="220" aria-label="Grafik tren standing ratio dan THI" role="img"></canvas>
+        </div>
+        <div>
+          <h3>Sebaran lima zona</h3>
+          <canvas id="ch-zones" height="220" aria-label="Grafik sebaran zona kandang" role="img"></canvas>
+          <ul class="legend" id="zone-legend"></ul>
+        </div>
+      </div>
+      <p class="notice">Heavy breathing tidak digrafikkan di v1 — sesuai rancangan, ia hanya valid sebagai klasifikasi manual bila kamera miring memperlihatkan dada/flank.</p>
+    </div>
+  </section>
+
+  <section class="window" aria-labelledby="log">
+    <div class="titlebar"><span>log kejadian</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h2 id="log">Jejak siklus</h2>
+      <div class="log" id="elog" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<footer>Smart Dairy Farming · <a href="kontrol.html">aturan kapan semprot boleh aktif</a></footer>
+
+<script src="assets/js/mock.js"></script>
+<script src="assets/js/firebase-config.js"></script>
+<script>
+(function () {
+  "use strict";
+  var ZONE_COLORS = { kipas: "#0097b9", lorong: "#64748b", terbuka: "#4d7c0f", pakan: "#b45309", minum: "#1d4ed8" };
+  var ZONE_LABEL = { kipas: "kipas", lorong: "lorong", terbuka: "sisi terbuka", pakan: "area pakan", minum: "area minum" };
+
+  var db = null;
+  if (window.FIREBASE_CONFIGURED) {
+    try {
+      firebase.initializeApp(window.FIREBASE_CONFIG);
+      db = firebase.firestore();
+      document.getElementById("mode").textContent = "tersambung Firestore";
+      document.getElementById("firestore-note").textContent =
+        "Tersambung Firestore — batch telemetri diarsipkan tiap 1 menit ke koleksi telemetry, siklus ke events.";
+    } catch (e) { db = null; }
+  }
+
+  function log(msg) {
+    var box = document.getElementById("elog");
+    var d = document.createElement("div");
+    d.textContent = new Date().toLocaleTimeString("id-ID") + "  " + msg;
+    box.prepend(d);
+    while (box.children.length > 40) box.lastChild.remove();
+  }
+
+  var s = BarnMock.step(BarnMock.fresh());
+  var hist = [];
+  var lastPush = 0;
+
+  var trend = new Chart(document.getElementById("ch-trend"), {
+    type: "line",
+    data: { labels: [], datasets: [
+      { label: "Standing %", data: [], borderColor: "#0097b9", backgroundColor: "#0097b9", tension: 0.3, pointRadius: 0 },
+      { label: "THI", data: [], borderColor: "#b91c1c", backgroundColor: "#b91c1c", tension: 0.3, pointRadius: 0, yAxisID: "y1" }
+    ]},
+    options: { responsive: true, animation: false,
+      scales: { y: { min: 0, max: 100 }, y1: { position: "right", min: 60, max: 85, grid: { drawOnChartArea: false } } } }
+  });
+
+  var zones = new Chart(document.getElementById("ch-zones"), {
+    type: "doughnut",
+    data: { labels: BarnMock.ZONES.map(function (z) { return ZONE_LABEL[z]; }),
+      datasets: [{ data: [0, 0, 0, 0, 0],
+        backgroundColor: BarnMock.ZONES.map(function (z) { return ZONE_COLORS[z]; }) }] },
+    options: { responsive: true, animation: false }
+  });
+
+  var legend = document.getElementById("zone-legend");
+  BarnMock.ZONES.forEach(function (z) {
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="swatch" style="background:' + ZONE_COLORS[z] + '"></span><span><b>' +
+      ZONE_LABEL[z] + '</b> — <span class="px" data-zone="' + z + '">–</span> ekor</span>';
+    legend.appendChild(li);
+  });
+
+  function paint() {
+    s = BarnMock.step(s);
+    var b = BarnMock.band(s.thi);
+    var r = BarnMock.ratio(s);
+
+    document.getElementById("d-thi").textContent = s.thi.toFixed(1);
+    document.getElementById("d-fill").style.transform =
+      "scaleX(" + (1 - Math.min(1, Math.max(0, (s.thi - 60) / 25))).toFixed(3) + ")";
+    var band = document.getElementById("d-band");
+    band.textContent = b.key === "ok" ? "Aman — pantau" : (b.key === "warn" ? "Peringatan awal — kipas / pantau rapat" : "Intervensi — sprinkler boleh aktif");
+    band.className = "badge " + b.key;
+    document.getElementById("d-climate").textContent = s.suhu.toFixed(1) + "°C · kelembapan " + s.humidity + "%";
+
+    document.getElementById("d-ratio").textContent = (r * 100).toFixed(0) + "% berdiri";
+    document.getElementById("d-count").textContent =
+      s.standing + " berdiri · " + s.lying + " berbaring · " + s.occluded + " occluded (excluded)";
+    var prev = hist.length ? hist[hist.length - 1].r : r;
+    var tr = document.getElementById("d-trend");
+    tr.textContent = "tren: " + (r > prev + 0.02 ? "naik ▲" : (r < prev - 0.02 ? "turun ▼" : "stabil ▬"));
+
+    document.getElementById("d-pump").textContent = "pompa: " + s.pump;
+    document.getElementById("d-fan").textContent = "kipas: " + s.fan;
+    var now = Date.now();
+    document.getElementById("d-timer").textContent =
+      now < s.pumpUntil ? "menyemprot: " + Math.ceil((s.pumpUntil - now) / 1000) + " dtk tersisa"
+      : (now < s.cooldownUntil ? "cooldown: " + Math.ceil((s.cooldownUntil - now) / 1000) + " dtk tersisa" : "cooldown: bebas — siklus boleh aktif");
+    document.getElementById("btn-cancel").disabled = !(now < s.pumpUntil);
+
+    hist.push({ r: r, thi: s.thi });
+    if (hist.length > 60) hist.shift();
+    trend.data.labels = hist.map(function (_, i) { return i; });
+    trend.data.datasets[0].data = hist.map(function (h) { return +(h.r * 100).toFixed(1); });
+    trend.data.datasets[1].data = hist.map(function (h) { return +h.thi.toFixed(1); });
+    trend.update();
+    zones.data.datasets[0].data = BarnMock.ZONES.map(function (z) { return s.zones[z]; });
+    zones.update();
+    BarnMock.ZONES.forEach(function (z) {
+      var el = legend.querySelector('[data-zone="' + z + '"]');
+      if (el) el.textContent = s.zones[z];
+    });
+
+    // Auto-aturan rancangan: THI ≥72 dan standing naik → siklus 1,5 mnt + pengeringan.
+    if (s.thi >= 72 && r >= 0.6 && s.pump === "mati" && now >= s.cooldownUntil && now - lastPush > 90000) {
+      startCycle("otomatis (THI " + s.thi.toFixed(1) + ", standing " + (r * 100).toFixed(0) + "%)");
+      lastPush = now;
+    }
+
+    // Batch Firestore tiap 1 menit.
+    if (db && (!paint.lastBatch || now - paint.lastBatch > 60000)) {
+      paint.lastBatch = now;
+      db.collection("telemetry").add({
+        t: firebase.firestore.FieldValue.serverTimestamp(),
+        thi: +s.thi.toFixed(2), suhu: +s.suhu.toFixed(2), humidity: s.humidity,
+        standing: s.standing, lying: s.lying, occluded: s.occluded, zones: s.zones,
+        pump: s.pump, fan: s.fan, synthetic: true
+      }).catch(function () {});
+    }
+  }
+
+  function startCycle(why) {
+    var now = Date.now();
+    s.pumpUntil = now + 90000;
+    s.cooldownUntil = now + 90000 + 6 * 60000;
+    s.pump = "menyemprot"; s.fan = "menyala";
+    log("SIKLUS MULAI — " + why);
+    if (db) db.collection("events").add({
+      t: firebase.firestore.FieldValue.serverTimestamp(),
+      kind: "cycle_start", reason: why, synthetic: true
+    }).catch(function () {});
+  }
+
+  document.getElementById("btn-override").addEventListener("click", function () {
+    startCycle("manual override operator");
+  });
+  document.getElementById("btn-cancel").addEventListener("click", function () {
+    s.pumpUntil = 0; s.pump = "mati";
+    log("SIKLUS DIBATALKAN operator — kipas lanjut pengeringan.");
+  });
+
+  log("Dashboard aktif — mock SYNTHETIC tiap 5 detik.");
+  paint();
+  setInterval(paint, 5000);
+})();
+</script>
+</body>
+</html>

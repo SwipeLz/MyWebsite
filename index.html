@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Dairy Farming — Pendinginan Adaptif THI + CCTV</title>
+<meta name="description" content="Sistem pendinginan otomatis berbasis THI dan pemantauan perilaku sapi via CCTV untuk sapi perah Friesian Holstein.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z' fill='%230097b9'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="taskbar">
+  <a class="brand" href="index.html" aria-label="Smart Dairy Farming — beranda">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z" fill="#0097b9" stroke="#101e33" stroke-width="1.5"/></svg>
+    <b>Smart Dairy Farming</b>
+  </a>
+  <nav aria-label="Navigasi utama">
+    <a href="index.html" aria-current="page">Konsep</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="kontrol.html">Logika kontrol</a>
+  </nav>
+</header>
+
+<main>
+  <section class="window hero-flash" aria-labelledby="judul">
+    <div class="titlebar"><span>kandang — status kini (SYNTHETIC)</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h1 id="judul">Sprinkler yang tahu kapan sapi kepanasan.</h1>
+      <p>Bukan timer. Sistem membaca <strong>THI</strong> sebagai konteks lingkungan, mengonfirmasi lewat <strong>perilaku sapi di CCTV</strong>, baru memutus semprot — lalu mengevaluasi apakah sapi membaik.</p>
+      <div class="grid">
+        <div class="stat">
+          <span class="label">THI kini (mock)</span>
+          <span class="big-read" id="hero-thi">–</span>
+          <div class="loadbar" role="img" aria-label="Bilah level THI"><div class="fill" id="hero-fill"></div><div class="ticks"><span>60</span><span>68</span><span>72</span><span>78</span><span>85</span></div></div>
+          <span class="badge info" id="hero-band">memuat…</span>
+        </div>
+        <div class="stat">
+          <span class="label">Standing ratio (mock)</span>
+          <span class="big-read" id="hero-ratio">–</span>
+          <span class="label" id="hero-count">–</span>
+          <span class="badge info" id="hero-pump">pompa: –</span>
+        </div>
+      </div>
+      <p style="margin-block-start:18px">
+        <a class="btn primary" href="dashboard.html" style="text-decoration:none">Buka dashboard</a>
+        <a class="btn" href="kontrol.html" style="text-decoration:none">Lihat logika kontrol</a>
+      </p>
+      <p class="notice">Angka di halaman ini <strong>SYNTHETIC</strong> (hasil simulasi browser) sampai tersambung ke sensor dan CCTV asli.</p>
+    </div>
+  </section>
+
+  <section class="window" aria-labelledby="alur">
+    <div class="titlebar"><span>rantai keputusan</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h2 id="alur">Lingkungan → respons → keputusan → intervensi → evaluasi</h2>
+      <ol class="flow">
+        <li><span class="n">1</span><span><strong>Lingkungan.</strong> Sensor suhu dan kelembapan menghitung THI — indikator risiko lingkungan, bukan vonis stres per sapi.</span></li>
+        <li><span class="n">2</span><span><strong>Respons sapi.</strong> CCTV + YOLOv8-nano membaca standing ratio, lying ratio, dan sebaran lima zona kandang.</span></li>
+        <li><span class="n">3</span><span><strong>Keputusan kontrol.</strong> THI tinggi <em>dan</em> perilaku memburuk → sprinkler boleh aktif. Satu sinyal saja tidak cukup.</span></li>
+        <li><span class="n">4</span><span><strong>Intervensi.</strong> Semprot intermiten 1,5 menit lewat nozzle coarse droplet, lalu kipas mengeringkan 5–8 menit.</span></li>
+        <li><span class="n">5</span><span><strong>Evaluasi.</strong> Rasio diukur ulang 5 dan 10–15 menit sesudahnya. Membaik → cooldown. Tetap buruk → siklus berikutnya + peringatan operator.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="window" aria-labelledby="bagian">
+    <div class="titlebar"><span>susunan sistem</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="winbody">
+      <h2 id="bagian">Enam bagian, satu bahasa</h2>
+      <table>
+        <thead><tr><th scope="col">Bagian</th><th scope="col">Fungsi</th></tr></thead>
+        <tbody>
+          <tr><td>Sensor suhu + kelembapan</td><td>Menghitung THI sebagai konteks risiko lingkungan.</td></tr>
+          <tr><td>Kamera CCTV IP (2 unit, miring)</td><td>Memantau postur, distribusi posisi, dan perilaku yang terlihat.</td></tr>
+          <tr><td>Laptop Python + OpenCV/YOLOv8-nano</td><td>Mendeteksi sapi, mengklasifikasi perilaku, menghitung parameter kelompok.</td></tr>
+          <tr><td>ESP32</td><td>Menerima keputusan via HTTP/MQTT.</td></tr>
+          <tr><td>Relay, pompa, kipas</td><td>Menjalankan intervensi pendinginan.</td></tr>
+          <tr><td>Nozzle coarse droplet</td><td>Semprot intermiten yang menurunkan heat load tanpa kabut halus berlebih.</td></tr>
+        </tbody>
+      </table>
+      <h3>Yang sengaja tidak dipakai di tahap pertama</h3>
+      <p>Rumination otomatis dari wide-angle, suhu tubuh via RGB, heart rate, cortisol, thermal camera, collar 16 sapi, dan flow sensor — belum setimpal dengan waktu dan anggaran 1–2 bulan.</p>
+    </div>
+  </section>
+</main>
+
+<footer>Smart Dairy Farming · Friesian Holstein · data mock berlabel SYNTHETIC · <a href="kontrol.html">logika kontrol</a></footer>
+
+<script src="assets/js/mock.js"></script>
+<script>
+(function () {
+  var s = BarnMock.step(BarnMock.fresh());
+  function paint() {
+    s = BarnMock.step(s);
+    var b = BarnMock.band(s.thi);
+    document.getElementById("hero-thi").textContent = s.thi.toFixed(1);
+    document.getElementById("hero-fill").style.transform =
+      "scaleX(" + (1 - Math.min(1, Math.max(0, (s.thi - 60) / 25))).toFixed(3) + ")";
+    var band = document.getElementById("hero-band");
+    band.textContent = b.label + " · " + s.suhu.toFixed(1) + "°C · " + s.humidity + "%";
+    band.className = "badge " + b.key;
+    document.getElementById("hero-ratio").textContent =
+      (BarnMock.ratio(s) * 100).toFixed(0) + "%";
+    document.getElementById("hero-count").textContent =
+      s.standing + " berdiri · " + s.lying + " berbaring · " + s.occluded + " occluded (excluded)";
+    document.getElementById("hero-pump").textContent = "pompa: " + s.pump + " · kipas: " + s.fan;
+  }
+  paint();
+  setInterval(paint, 5000);
+})();
+</script>
+</body>
+</html>
