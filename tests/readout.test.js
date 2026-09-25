@@ -3,14 +3,11 @@
 const assert = require("node:assert/strict");
 const { describe, it } = require("node:test");
 global.Barn = require("../assets/js/barn.js");
+const Mock = require("../assets/js/mock.js");
 const Readout = require("../assets/js/readout.js");
 
 function state(over) {
-  return Object.assign({
-    thi: 74, suhu: 28.5, humidity: 70, standing: 9, lying: 5, occluded: 2,
-    zones: { kipas: 5, lorong: 2, terbuka: 2, pakan: 3, minum: 2 },
-    pump: "mati", fan: "menyala", cooldownUntil: 0, pumpUntil: 0
-  }, over);
+  return Object.assign(Mock.fresh(), { thi: 74, suhu: 28.5, humidity: 70 }, over);
 }
 
 describe("summarize", () => {
@@ -40,10 +37,3 @@ describe("summarize", () => {
   });
 });
 
-describe("TIMING koheren", () => {
-  const Barn = global.Barn;
-  it("batch kelipatan tick; histori mencakup jendela evaluasi 5 menit", () => {
-    assert.equal(Barn.TIMING.batchMs % Barn.TIMING.tickMs, 0);
-    assert.equal(Barn.TIMING.histMax * Barn.TIMING.tickMs, 300000);
-  });
-});

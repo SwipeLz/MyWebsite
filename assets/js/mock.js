@@ -9,16 +9,34 @@
 
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
+  // Satu-satunya loop apportion: bagi assessable ke kunci Zona Kandang
+  // menurut bobot; sisa pembulatan jatuh ke kunci terakhir.
+  function apportion(assessable, weights) {
+    var keys = B().ZONES.map(function (z) { return z.key; });
+    var sum = keys.reduce(function (a, z) { return a + weights[z]; }, 0);
+    var zones = {};
+    var acc = 0;
+    keys.forEach(function (z, i) {
+      if (i === keys.length - 1) { zones[z] = assessable - acc; }
+      else { var c = Math.round(assessable * weights[z] / sum); zones[z] = c; acc += c; }
+    });
+    return zones;
+  }
+
   function freshState() {
+    // Diturunkan dari Barn.HERD: occluded tetap 2, standing ≈64% assessable.
+    var occluded = 2;
+    var assessable = B().HERD - occluded;
+    var standing = Math.round(assessable * 0.64);
     return {
       t: Date.now(),
       thi: 70.5,
       suhu: 27.5,
       humidity: 72,
-      standing: 9,
-      lying: 5,
-      occluded: 2,
-      zones: { kipas: 5, lorong: 2, terbuka: 2, pakan: 3, minum: 2 },
+      standing: standing,
+      lying: assessable - standing,
+      occluded: occluded,
+      zones: apportion(assessable, { kipas: 5, lorong: 2, terbuka: 2, pakan: 3, minum: 2 }),
       pump: "mati",
       fan: "menyala",
       cooldownUntil: 0,
@@ -53,14 +71,7 @@
       pakan: 3,
       minum: 1.5 + stress * 2.5
     };
-    var keys = B().ZONES.map(function (z) { return z.key; });
-    var sum = keys.reduce(function (a, z) { return a + w[z]; }, 0);
-    var acc = 0;
-    s.zones = {};
-    keys.forEach(function (z, i) {
-      if (i === keys.length - 1) { s.zones[z] = assessable - acc; }
-      else { var c = Math.round(assessable * w[z] / sum); s.zones[z] = c; acc += c; }
-    });
+    s.zones = apportion(assessable, w);
 
     // Status aktuator.
     if (now < s.pumpUntil) { s.pump = "menyemprot"; s.fan = "menyala"; }

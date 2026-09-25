@@ -69,3 +69,10 @@ describe("STATUS", () => {
     assert.deepEqual(Barn.STATUS, { ok: "#166534", warn: "#92400e", danger: "#b91c1c" });
   });
 });
+
+describe("TIMING koheren", () => {
+  it("batch kelipatan tick; histori mencakup jendela evaluasi 5 menit", () => {
+    assert.equal(Barn.TIMING.batchMs % Barn.TIMING.tickMs, 0);
+    assert.equal(Barn.TIMING.histMax * Barn.TIMING.tickMs, 300000);
+  });
+});

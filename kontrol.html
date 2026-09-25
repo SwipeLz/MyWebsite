@@ -28,11 +28,11 @@
         <caption>Kondisi → tindakan (rancangan awal, wajib kalibrasi lapangan)</caption>
         <thead><tr><th scope="col">Kondisi</th><th scope="col">Tindakan</th></tr></thead>
         <tbody>
-          <tr><td>THI 68–72, atau standing ratio naik</td><td>Kipas aktif, frekuensi pemantauan ditingkatkan.</td></tr>
-          <tr><td>THI ≥ 72 <strong>dan</strong> standing ratio naik</td><td>Sprinkler boleh aktif: semprot 1,5 menit.</td></tr>
+          <tr><td>THI <span data-barn="THI_WARN">68</span>–<span data-barn="THI_ACT">72</span>, atau standing ratio naik</td><td>Kipas aktif, frekuensi pemantauan ditingkatkan.</td></tr>
+          <tr><td>THI ≥ <span data-barn="THI_ACT">72</span> <strong>dan</strong> standing ratio naik</td><td>Sprinkler boleh aktif: semprot <span data-barn="pumpMin">1,5</span> menit.</td></tr>
           <tr><td>THI tinggi <strong>dan</strong> heavy breathing naik (kamera miring valid)</td><td>Sprinkler boleh aktif; bila kamera overhead, parameter ini dilewati.</td></tr>
           <tr><td>Standing naik <strong>dan</strong> sapi berkumpul di zona kipas</td><td>Status peringatan; intervensi bila persisten melewati durasi.</td></tr>
-          <tr><td>Setelah semprot 1,5 menit</td><td>Kipas mengeringkan 5–8 menit. Lantai becek = kegagalan.</td></tr>
+          <tr><td>Setelah semprot <span data-barn="pumpMin">1,5</span> menit</td><td>Kipas mengeringkan 5–8 menit. Lantai becek = kegagalan.</td></tr>
           <tr><td>Indikator membaik</td><td><strong>Jangan</strong> buka siklus baru — hysteresis + cooldown wajib.</td></tr>
           <tr><td>Indikator tetap buruk</td><td>Siklus berikutnya dalam batas aman + peringatan ke operator.</td></tr>
         </tbody>
@@ -66,5 +66,17 @@
 </main>
 
 <footer>Smart Dairy Farming · ambang angka rancangan awal — kalibrasi ulang dengan data kandang lokal</footer>
+<script src="assets/js/barn.js"></script>
+<script>
+(function () {
+  // Angka kalibrasi dirender dari Barn agar tak basi; narasi tetap statis.
+  document.querySelectorAll("[data-barn]").forEach(function (node) {
+    var k = node.getAttribute("data-barn");
+    if (k === "THI_WARN") node.textContent = Barn.THI_WARN;
+    else if (k === "THI_ACT") node.textContent = Barn.THI_ACT;
+    else if (k === "pumpMin") node.textContent = String(Barn.CYCLE.pumpMs / 60000).replace(".", ",");
+  });
+})();
+</script>
 </body>
 </html>

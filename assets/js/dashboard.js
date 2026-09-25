@@ -120,8 +120,12 @@
   }
 
   boot();
-  Store.init(function () {
-    if (!Store.isLive()) return;
+  Store.init(function (err) {
+    if (err || !Store.isLive()) {
+      el("firestore-note").textContent =
+        "Mode lokal — arsip Firestore nonaktif. Tempel firebaseConfig untuk mengarsipkan telemetri.";
+      return;
+    }
     el("mode").textContent = "tersambung Firestore";
     el("firestore-note").textContent =
       "Tersambung Firestore — batch telemetri diarsipkan tiap 1 menit ke koleksi telemetry, siklus ke events.";
