@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-static HTML + Tailwind CDN + Chart.js + Firebase Hosting + Firestore. Mock-first di v1, Auth ditunda ke luar v1.
+static HTML + CSS kustom + Chart.js + Firebase Hosting + Firestore. Mock-first di v1, Auth ditunda ke luar v1.
 
 ## Users
 
@@ -28,7 +28,7 @@ Kandang 16 sapi, 2 kamera IP miring (kiri/kanan), laptop Python OpenCV/YOLOv8-na
 
 ## Capabilities and Constraints
 
-Beranda konsep, dashboard mock 4 blok (gauge THI 68–72 peringatan / 72–78 intervensi, chart standing/lying ratio, distribusi zona, status aktuator), halaman logika kontrol. Firestore `telemetry` (dok per menit) + `events` (per siklus); mock di browser tiap ~5 detik, tulis batch tiap 1 menit. Heavy breathing hanya catatan validasi manual di v1, bukan grafik otomatis. Tanpa thermal camera, collar, flow sensor, dan tanpa Auth di v1. Bahasa Indonesia. Target waktu 1–2 bulan. Belum diputuskan: `firebaseConfig` project (masih placeholder, ditempel belakangan).
+Beranda konsep, dashboard mock 4 blok (gauge THI 68–72 peringatan / ≥72 intervensi, chart standing/lying ratio, distribusi zona, status aktuator), halaman logika kontrol. Firestore `telemetry` (dok per menit) + `events` (per siklus); mock di browser tiap ~5 detik, tulis batch tiap 1 menit. Heavy breathing hanya catatan validasi manual di v1, bukan grafik otomatis. Tanpa thermal camera, collar, flow sensor, dan tanpa Auth di v1. Bahasa Indonesia. Target waktu 1–2 bulan. Belum diputuskan: `firebaseConfig` project (masih placeholder, ditempel belakangan).
 
 ## Evidence on Hand
 

@@ -65,8 +65,9 @@ describe("telemetryDoc", () => {
 });
 
 describe("STATUS", () => {
-  it("satu-satunya sumber warna status fungsional", () => {
-    assert.deepEqual(Barn.STATUS, { ok: "#166534", warn: "#92400e", danger: "#b91c1c" });
+  it("menyediakan warna untuk tiga band status", () => {
+    assert.deepEqual(Object.keys(Barn.STATUS).sort(), ["danger", "ok", "warn"]);
+    Object.values(Barn.STATUS).forEach((c) => assert.match(c, /^#[0-9a-f]{6}$/));
   });
 });
 

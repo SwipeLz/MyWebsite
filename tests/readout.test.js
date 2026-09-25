@@ -31,9 +31,9 @@ describe("summarize", () => {
     assert.match(Readout.summarize(state(), 0.5, 1000).timerText, /bebas/);
   });
   it("fillScale 0..1 dan count exclude occluded", () => {
-    const vm = Readout.summarize(state(), 0.5, 1000);
+    const vm = Readout.summarize(state({ occluded: 5 }), 0.5, 1000);
     assert.ok(vm.fillScale >= 0 && vm.fillScale <= 1);
-    assert.match(vm.countText, /2 occluded \(excluded\)/);
+    assert.match(vm.countText, /5 occluded \(excluded\)/);
   });
 });
 

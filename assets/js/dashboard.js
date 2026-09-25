@@ -17,6 +17,7 @@
   function boot() {
     var s = BarnMock.step(BarnMock.fresh());
     var hist = [];
+    var lastBatch = 0;
 
     var aqua = Barn.ZONES[0].color;
     var trend = new Chart(el("ch-trend"), {
@@ -91,10 +92,10 @@
       { thi: s.thi, ratio: vm.ratio, pump: s.pump, cooldownUntil: s.cooldownUntil, now: now }, prev);
     if (verdict.fire) startCycle(verdict.reason);
 
-    if (!paint.lastBatch || now - paint.lastBatch > Barn.TIMING.batchMs) {
-        paint.lastBatch = now;
-        Store.saveTelemetry(Barn.telemetryDoc(s));
-      }
+    if (!lastBatch || now - lastBatch > Barn.TIMING.batchMs) {
+      lastBatch = now;
+      Store.saveTelemetry(Barn.telemetryDoc(s));
+    }
     }
 
     function startCycle(why) {
