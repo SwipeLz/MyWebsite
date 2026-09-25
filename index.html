@@ -13,17 +13,9 @@
 </head>
 <body>
 
-<header class="taskbar">
-  <a class="brand" href="index.html" aria-label="Smart Dairy Farming — beranda">
-    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l2.6 7.6L26 11l-6.5 4.9L21.5 24 16 19.3 10.5 24l2-8.1L6 11l7.4-1.4z" fill="#0097b9" stroke="#101e33" stroke-width="1.5"/></svg>
-    <b>Smart Dairy Farming</b>
-  </a>
-  <nav aria-label="Navigasi utama">
-    <a href="index.html" aria-current="page">Konsep</a>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="kontrol.html">Logika kontrol</a>
-  </nav>
-</header>
+<div data-nav="index"></div>
+<noscript><nav aria-label="Navigasi utama"><a href="index.html">Konsep</a> · <a href="dashboard.html">Dashboard</a> · <a href="kontrol.html">Logika kontrol</a></nav></noscript>
+<script src="assets/js/chrome.js"></script>
 
 <main>
   <section class="window hero-flash" aria-labelledby="judul">
@@ -90,21 +82,21 @@
 
 <footer>Smart Dairy Farming · Friesian Holstein · data mock berlabel SYNTHETIC · <a href="kontrol.html">logika kontrol</a></footer>
 
+<script src="assets/js/barn.js"></script>
 <script src="assets/js/mock.js"></script>
 <script>
 (function () {
   var s = BarnMock.step(BarnMock.fresh());
   function paint() {
     s = BarnMock.step(s);
-    var b = BarnMock.band(s.thi);
+    var b = Barn.band(s.thi);
     document.getElementById("hero-thi").textContent = s.thi.toFixed(1);
     document.getElementById("hero-fill").style.transform =
-      "scaleX(" + (1 - Math.min(1, Math.max(0, (s.thi - 60) / 25))).toFixed(3) + ")";
-    var band = document.getElementById("hero-band");
-    band.textContent = b.label + " · " + s.suhu.toFixed(1) + "°C · " + s.humidity + "%";
-    band.className = "badge " + b.key;
-    document.getElementById("hero-ratio").textContent =
-      (BarnMock.ratio(s) * 100).toFixed(0) + "%";
+      "scaleX(" + (1 - Barn.thiFill(s.thi)).toFixed(3) + ")";
+    var badge = document.getElementById("hero-band");
+    badge.textContent = b.label + " · " + s.suhu.toFixed(1) + "°C · " + s.humidity + "%";
+    badge.className = "badge " + b.key;
+    document.getElementById("hero-ratio").textContent = Barn.pct(Barn.ratio(s.standing, s.lying));
     document.getElementById("hero-count").textContent =
       s.standing + " berdiri · " + s.lying + " berbaring · " + s.occluded + " occluded (excluded)";
     document.getElementById("hero-pump").textContent = "pompa: " + s.pump + " · kipas: " + s.fan;

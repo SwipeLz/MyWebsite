@@ -1,9 +1,31 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Prototipe v1: baca publik, tulis publik. Kunci sebelum produksi
-    // (mis. requireAuth) setelah Auth ditambahkan di luar v1.
-    match /telemetry/{doc} { allow read: if true; allow write: if true; }
-    match /events/{doc} { allow read: if true; allow write: if true; }
+    // Prototipe v1: baca publik, tulis publik TAPI tervalidasi skema.
+    // Kunci dengan Auth sebelum produksi (Auth ditunda di luar v1).
+    function zoneMapOk(zones) {
+      return zones.keys().hasOnly(["kipas", "lorong", "terbuka", "pakan", "minum"])
+        && zones.kipas is int && zones.lorong is int && zones.terbuka is int
+        && zones.pakan is int && zones.minum is int;
+    }
+    match /telemetry/{doc} {
+      allow read: if true;
+      allow write: if request.resource.data.keys().hasOnly(
+          ["t", "thi", "suhu", "humidity", "standing", "lying", "occluded",
+           "zones", "pump", "fan", "synthetic"])
+        && request.resource.data.thi is number
+        && request.resource.data.standing is int
+        && request.resource.data.lying is int
+        && request.resource.data.occluded is int
+        && zoneMapOk(request.resource.data.zones)
+        && request.resource.data.pump in ["mati", "menyemprot"]
+        && request.resource.data.synthetic is bool;
+    }
+    match /events/{doc} {
+      allow read: if true;
+      allow write: if request.resource.data.keys().hasOnly(["t", "kind", "reason", "synthetic"])
+        && request.resource.data.kind is string
+        && request.resource.data.reason is string;
+    }
   }
 }

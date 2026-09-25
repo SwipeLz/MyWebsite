@@ -1,0 +1,9 @@
+{
+  "name": "smart-dairy-farming-website",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Website v1 Smart Dairy Farming — diperlukan hanya untuk menjalankan tes (node:test, tanpa dependensi).",
+  "scripts": {
+    "test": "node --test tests/barn.test.js tests/mock.test.js"
+  }
+}
