@@ -1,0 +1,152 @@
+{
+  "page": {
+    "width_mm": 210,
+    "height_mm": 297,
+    "margins_mm": {"top": 22, "bottom": 22, "left": 24, "right": 20}
+  },
+  "header": "Ringkasan Konsep Proyek Smart Dairy Farming",
+  "footer_page_numbers": true,
+  "styles": [
+    {"name": "Body Text Custom", "base": "Normal", "font": "Calibri", "size_pt": 10.5, "color": "222222"},
+    {"name": "Small Note", "base": "Normal", "font": "Calibri", "size_pt": 9, "italic": true, "color": "555555"},
+    {"name": "Callout", "base": "Normal", "font": "Calibri", "size_pt": 11, "bold": true, "color": "1F4E79"}
+  ],
+  "blocks": [
+    {"type": "heading", "level": 1, "text": "Ringkasan dan Rekomendasi Proyek"},
+    {"type": "paragraph", "style": "Callout", "text": "Sistem pendinginan otomatis berbasis THI dan pemantauan perilaku sapi menggunakan kamera CCTV untuk membantu menurunkan indikator heat stress pada sapi perah Friesian Holstein."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Dokumen ini merupakan ringkasan hasil diskusi teknis dan rekomendasi awal proyek. Dokumen ini belum menggantikan validasi lapangan, persetujuan dosen pembimbing, atau rancangan metodologi final."},
+
+    {"type": "heading", "level": 1, "text": "1. Konsep Utama Proyek"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Proyek sebaiknya tidak hanya diposisikan sebagai sistem sprinkler yang menyala ketika suhu tinggi. Sprinkler berfungsi sebagai aktuator, sedangkan kamera CCTV digunakan untuk memantau respons sapi sebelum dan sesudah pendinginan."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Konsep sistem yang direkomendasikan adalah: lingkungan → respons sapi → keputusan kontrol → intervensi pendinginan → evaluasi perubahan respons sapi."},
+    {"type": "table", "style": "Table Grid", "header_bold": true, "header": ["Bagian sistem", "Fungsi"], "rows": [
+      ["Sensor suhu dan kelembapan", "Menghitung THI sebagai indikator risiko lingkungan."],
+      ["Kamera CCTV IP", "Memantau postur, distribusi posisi, aktivitas, dan perilaku sapi yang terlihat."],
+      ["Laptop Python dan OpenCV/YOLOv8-nano", "Mendeteksi sapi, mengklasifikasikan perilaku, dan menghitung parameter kelompok."],
+      ["ESP32", "Menerima keputusan dari laptop melalui HTTP atau MQTT."],
+      ["Relay, pompa, dan kipas", "Menjalankan intervensi pendinginan."],
+      ["Nozzle coarse droplet", "Menyemprotkan air secara intermiten untuk mengurangi heat load tanpa menghasilkan kabut halus berlebihan."]
+    ]},
+
+    {"type": "heading", "level": 1, "text": "2. Parameter yang Dipantau"},
+    {"type": "heading", "level": 2, "text": "2.1 Parameter lingkungan"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Suhu dan kelembapan digunakan untuk menghitung THI. THI merupakan indikator risiko lingkungan, bukan pengukuran langsung terhadap stres setiap sapi. Respons sapi dapat berbeda berdasarkan produksi susu, fase laktasi, umur, paritas, kondisi tubuh, dan aliran udara [1][2][3]."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Sebagai titik awal, THI sekitar 68 sampai 72 dapat digunakan sebagai peringatan awal, sedangkan THI sekitar 72 sampai 78 dapat digunakan sebagai kondisi intervensi. Nilai tersebut harus dikalibrasi kembali berdasarkan data lokal kandang karena ambang respons berbeda antarpeternakan [4][7][9][11]."},
+
+    {"type": "heading", "level": 2, "text": "2.2 Parameter kamera yang direkomendasikan"},
+    {"type": "table", "style": "Table Grid", "header_bold": true, "header": ["Parameter", "Cara memperoleh", "Prioritas", "Catatan"], "rows": [
+      ["Standing ratio", "Jumlah sapi berdiri dibagi jumlah sapi yang terlihat dan dapat dinilai.", "Sangat tinggi", "Parameter utama yang realistis untuk CCTV."],
+      ["Lying ratio", "Jumlah sapi berbaring dibagi jumlah sapi yang terlihat dan dapat dinilai.", "Sangat tinggi", "Perlu mempertimbangkan waktu makan dan pemerahan."],
+      ["Durasi standing dan lying", "Tracking postur setiap sapi atau area dalam interval waktu.", "Tinggi", "Dapat menunjukkan perubahan time budget."],
+      ["Distribusi zona", "Jumlah sapi di area kipas, lorong, sisi terbuka, area pakan, dan area minum.", "Tinggi", "Tidak memerlukan sensor tambahan."],
+      ["Perilaku minum", "Deteksi kepala berada di area minum dan durasi kunjungan.", "Sedang", "Digunakan sebagai parameter pendukung jika tempat minum terlihat."],
+      ["Perilaku makan", "Deteksi kepala berada di area pakan dan durasi berada di area tersebut.", "Sedang", "Lebih sulit karena kepala sering tertutup palung atau sapi lain."],
+      ["Aktivitas umum", "Perpindahan posisi, perpindahan zona, atau pergerakan centroid.", "Sedang", "Kurang spesifik karena dipengaruhi pakan, pemerahan, dan gangguan lain."],
+      ["Heavy breathing/panting", "Gerakan dada atau flank, mulut terbuka, lidah, dan drooling.", "Tinggi jika sudut kamera sesuai", "Tidak cocok jika kamera benar-benar tegak lurus dari atas."]
+    ]},
+
+    {"type": "heading", "level": 2, "text": "2.3 Standing dan lying behavior"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Standing dan lying merupakan parameter utama yang paling realistis dipantau dengan kamera CCTV. Sapi yang mengalami heat stress cenderung mengurangi waktu berbaring dan meningkatkan waktu berdiri untuk memperbesar area tubuh yang terkena aliran udara [1][13]. Studi computer vision oleh Shu et al. menunjukkan bahwa standing dan lying index dapat digunakan untuk mendeteksi perubahan perilaku terkait heat stress [8]."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Parameter ini tidak spesifik hanya untuk heat stress. Lameness, lantai licin, kualitas tempat berbaring, waktu pemberian pakan, pemerahan, dan gangguan sosial juga dapat mengubah perilaku tersebut. Karena itu, standing dan lying sebaiknya digabungkan dengan THI serta parameter kamera lain."},
+
+    {"type": "heading", "level": 2, "text": "2.4 Heavy breathing atau panting"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Respiration rate merupakan salah satu indikator fisiologis yang sensitif terhadap heat stress [1][2]. Namun, target proyek yang realistis untuk waktu 1 sampai 2 bulan adalah mendeteksi heavy breathing atau panting secara klasifikasi, bukan mengukur respiration rate presisi untuk semua sapi."},
+    {"type": "table", "style": "Table Grid", "header_bold": true, "header": ["Kondisi kamera", "Rekomendasi"], "rows": [
+      ["Kamera tepat di atas dengan sudut hampir vertikal", "Tidak disarankan untuk mengukur respiration rate atau panting ratio karena gerakan dada dan flank tidak terlihat jelas."],
+      ["Kamera tinggi tetapi miring ke sisi tubuh sapi", "Dapat digunakan untuk klasifikasi normal breathing, heavy breathing, open-mouth panting, dan tidak dapat dinilai."],
+      ["Pandangan samping tidak tersedia", "Gunakan heavy breathing hanya sebagai validasi manual dari cuplikan video, bukan parameter otomatis utama."]
+    ]},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Jika heavy breathing digunakan, panting ratio dihitung sebagai jumlah sapi heavy breathing dibagi jumlah sapi yang dapat dinilai. Sapi yang tertutup sapi lain harus diberi status unknown atau occluded dan tidak boleh dimasukkan sebagai sapi normal."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Deteksi dapat dilakukan dengan YOLO untuk bounding box dan tracking, kemudian menganalisis area dada atau flank menggunakan frame difference, optical flow, atau klasifikasi berbasis video. Jika kamera hanya memberikan pandangan overhead, parameter ini sebaiknya tidak dipaksakan."},
+
+    {"type": "heading", "level": 2, "text": "2.5 Parameter yang tidak diprioritaskan"},
+    {"type": "bullet_list", "items": [
+      "Rumination otomatis dari CCTV wide-angle, karena gerakan rahang kecil dan mudah terhalang.",
+      "Suhu tubuh menggunakan CCTV RGB, karena kamera RGB tidak mengukur suhu.",
+      "Heart rate, karena membutuhkan sensor kontak yang stabil.",
+      "Cortisol, karena membutuhkan pengambilan sampel dan analisis laboratorium.",
+      "Thermal camera atau 16 collar rumination, karena tidak sesuai dengan batas waktu dan anggaran awal.",
+      "Flow sensor, karena pemasangan pada sistem air belum diyakini dan bukan kebutuhan utama tahap pertama."
+    ]},
+
+    {"type": "heading", "level": 1, "text": "3. Konfigurasi Kamera"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Jika hanya ingin memantau standing, lying, jumlah sapi, dan zona, kamera dengan pandangan tinggi dan luas dapat digunakan. Jika ingin menambahkan heavy breathing, kamera perlu dipasang tinggi tetapi diarahkan miring agar sisi dada, flank, leher, dan kepala sapi terlihat."},
+    {"type": "paragraph", "style": "Callout", "text": "Kamera overhead tegak lurus cocok untuk postur dan distribusi posisi, tetapi kurang cocok untuk respirasi. Kamera high-oblique lebih sesuai untuk sistem yang ingin mengamati heavy breathing."},
+    {"type": "numbered_list", "items": [
+      "Kamera 1 menghadap barisan kiri dengan sudut miring.",
+      "Kamera 2 menghadap barisan kanan dengan sudut miring.",
+      "Pastikan bagian tubuh sapi tidak terlalu kecil pada frame.",
+      "Sediakan status occluded atau unknown untuk sapi yang tidak terlihat.",
+      "Lakukan uji video pada pagi, siang, sore, dan setelah sprinkler aktif.",
+      "Jangan menetapkan parameter heavy breathing sebelum pemeriksaan visual terhadap video uji selesai."
+    ]},
+
+    {"type": "heading", "level": 1, "text": "4. Logika Kontrol yang Direkomendasikan"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Sistem sebaiknya tidak menggunakan aturan tunggal THI tinggi lalu sprinkler menyala. Gunakan THI sebagai konteks lingkungan dan kamera sebagai konfirmasi respons sapi."},
+    {"type": "table", "style": "Table Grid", "header_bold": true, "header": ["Kondisi", "Tindakan"], "rows": [
+      ["THI meningkat atau standing ratio meningkat", "Kipas aktif atau frekuensi pemantauan ditingkatkan."],
+      ["THI tinggi dan standing ratio meningkat", "Sprinkler dapat diaktifkan."],
+      ["THI tinggi dan heavy breathing meningkat", "Sprinkler dapat diaktifkan jika pandangan kamera valid."],
+      ["Standing ratio meningkat dan lebih banyak sapi menuju zona kipas", "Berikan status peringatan atau intervensi berdasarkan durasi persistensi."],
+      ["Setelah semprot 1,5 menit", "Kipas tetap membantu pengeringan selama 5 sampai 8 menit."],
+      ["Indikator membaik", "Jangan langsung mengaktifkan siklus baru. Gunakan hysteresis dan cooldown."],
+      ["Indikator tetap buruk", "Aktifkan siklus berikutnya sesuai batas aman dan kirim status peringatan kepada operator."]
+    ]},
+    {"type": "paragraph", "style": "Small Note", "text": "Ambang dan durasi di atas merupakan rancangan awal. Validasi diperlukan agar sistem tidak terlalu sering menyemprot, menyebabkan lantai becek, atau meningkatkan kelembapan secara berlebihan."},
+
+    {"type": "heading", "level": 1, "text": "5. Pengujian dan Evaluasi"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Evaluasi sistem harus mengukur perubahan respons sapi, bukan hanya membuktikan bahwa pompa menyala."},
+    {"type": "table", "style": "Table Grid", "header_bold": true, "header": ["Waktu pengukuran", "Data yang dicatat"], "rows": [
+      ["Sebelum penyemprotan", "THI, standing ratio, lying ratio, jumlah sapi per zona, heavy breathing jika terlihat, status kipas."],
+      ["Saat penyemprotan", "Durasi pompa, durasi kipas, status nozzle, perubahan posisi sapi."],
+      ["5 menit setelah penyemprotan", "Standing ratio, lying ratio, distribusi zona, heavy breathing jika valid."],
+      ["10 sampai 15 menit setelah penyemprotan", "Pemulihan perilaku dan kebutuhan siklus berikutnya."],
+      ["Setiap hari", "Durasi pompa, jumlah siklus, kondisi lantai, gangguan komunikasi, dan data yang hilang."]
+    ]},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Jika memungkinkan, bandingkan kontrol berbasis jadwal tetap dengan kontrol adaptif berbasis THI dan kamera. Jangan sengaja membiarkan sapi tanpa pendinginan pada kondisi panas berat. Pembanding dapat berupa dua jadwal pendinginan yang masih aman."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Karena intervensi diberikan pada kelompok atau area kandang, jangan langsung menganggap 16 sapi sebagai 16 unit eksperimen independen. Gunakan pengamatan berulang berdasarkan waktu dan hari, serta pertimbangkan efek jam makan, pemerahan, kipas, hujan, dan aktivitas manusia."},
+
+    {"type": "heading", "level": 1, "text": "6. Rekomendasi Ruang Lingkup Final"},
+    {"type": "paragraph", "style": "Callout", "text": "Versi proyek yang paling realistis: sistem sprinkler otomatis berbasis THI dengan kamera CCTV untuk mendeteksi standing-lying behavior dan distribusi posisi sapi pada zona kandang."},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "Heavy breathing dapat ditambahkan sebagai parameter otomatis hanya jika kamera memiliki pandangan miring yang memperlihatkan dada atau flank sapi. Jika kamera tetap overhead, gunakan standing, lying, zona kipas, zona lorong, aktivitas, dan perilaku minum atau makan sebagai parameter utama."},
+    {"type": "bullet_list", "items": [
+      "Tidak membutuhkan flow sensor pada tahap pertama.",
+      "Tidak membutuhkan thermal camera.",
+      "Tidak membutuhkan collar pada 16 sapi.",
+      "Memanfaatkan laptop dan kamera yang sudah direncanakan.",
+      "Memiliki parameter lingkungan dan parameter perilaku.",
+      "Memiliki aktuator, logika kontrol, dan evaluasi sebelum-sesudah pendinginan.",
+      "Lebih kuat secara akademik daripada sprinkler berbasis timer saja."
+    ]},
+
+    {"type": "heading", "level": 1, "text": "7. Urutan Pengerjaan 1 sampai 2 Bulan"},
+    {"type": "numbered_list", "items": [
+      "Menentukan posisi dan sudut kamera serta area zona kandang.",
+      "Menguji kestabilan RTSP dan kualitas video pada berbagai waktu.",
+      "Membuat dataset dan anotasi standing, lying, occluded, eating, drinking, serta heavy breathing jika terlihat.",
+      "Membangun deteksi sapi, tracking, dan klasifikasi standing-lying.",
+      "Menambahkan perhitungan rasio dan distribusi zona.",
+      "Menambahkan heavy breathing hanya setelah kualitas pandangan samping terkonfirmasi.",
+      "Menghubungkan laptop dengan ESP32 melalui HTTP atau MQTT.",
+      "Menguji logika hysteresis, cooldown, dan manual override.",
+      "Melakukan pengujian sebelum, selama, dan sesudah penyemprotan.",
+      "Menganalisis akurasi deteksi dan perubahan indikator heat stress."
+    ]},
+
+    {"type": "heading", "level": 1, "text": "8. Referensi yang Digunakan"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[1] Becker, C. A., Collier, R. J., & Stone, A. E. (2020). Invited review: Physiological and behavioral effects of heat stress in dairy cows. Journal of Dairy Science. https://doi.org/10.3168/jds.2019-17929"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[2] Ji, B., Banhazi, T., Perano, K., Ghahramani, A., Bowtell, L., Wang, C., & Li, B. (2020). A review of measuring, assessing and mitigating heat stress in dairy cattle. Biosystems Engineering. https://doi.org/10.1016/j.biosystemseng.2020.07.009"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[3] A systematic review of non-productivity-related animal-based indicators of heat stress resilience in dairy cattle. https://pmc.ncbi.nlm.nih.gov/articles/PMC6211699"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[4] Herbut, P., Angrecka, S., & Walczak, J. (2018). Environmental parameters to assessing of heat stress in dairy cattle: A review. International Journal of Biometeorology. https://doi.org/10.1007/s00484-018-1629-9"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[5] Abeni, F., & Galli, A. (2017). Monitoring cow activity and rumination time for an early detection of heat stress in dairy cow. International Journal of Biometeorology. https://doi.org/10.1007/s00484-016-1222-z"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[6] Moretti, R., Biffani, S., Chessa, S., & Bozzi, R. (2017). Heat stress effects on Holstein dairy cows’ rumination. Animal. https://pubmed.ncbi.nlm.nih.gov/28578746"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[7] Müschner-Siemens, T., Hoffmann, G., Ammon, C., & Amon, T. (2020). Daily rumination time of lactating dairy cows under heat stress conditions. Journal of Thermal Biology. https://doi.org/10.1016/j.jtherbio.2019.102484"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[8] Shu, H., Bindelle, J., Guo, L., & Gu, X. (2023). Determining the onset of heat stress in a dairy herd based on automated behaviour recognition. Biosystems Engineering. https://doi.org/10.1016/j.biosystemseng.2023.01.009"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[9] Dairy Cows Activity under Heat Stress: A Case Study in Spain. Animals. https://pmc.ncbi.nlm.nih.gov/articles/PMC8388454"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[10] Davison, C., Michie, C., Hamilton, A., Tachtatzis, C., Andonovic, I., & Gilroy, M. (2020). Detecting Heat Stress in Dairy Cattle Using Neck-Mounted Activity Collars. Agriculture. https://www.mdpi.com/2076-2615/10/6/210"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[11] Effects of cow reproductive status, parity and lactation stage on behaviour and heavy breathing indications of a commercial accelerometer during hot weather conditions. https://pmc.ncbi.nlm.nih.gov/articles/PMC10329063"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[12] Assessment of dairy cow heat stress by monitoring drinking behaviour using an embedded imaging system. Computers and Electronics in Agriculture. https://sciencedirect.com/science/article/pii/S1537511020300763"},
+    {"type": "paragraph", "style": "Body Text Custom", "text": "[13] Cook, N. B., Mentink, R. L., Bennett, T. B., & Burgi, K. (2007). The impact of mild heat stress and lameness on the time budgets of dairy cattle. https://elibrary.asabe.org/azdez.asp?AID=22796&CID=dhc2007&JID=1&T=2&confid=dhc2007&redirType=conference.asp"},
+    {"type": "paragraph", "style": "Small Note", "text": "Referensi Santoso et al. (2023), Bulitta et al. (2015), Wu et al. (2021), dan Schutz et al. (2008) tetap relevan berdasarkan informasi yang diberikan, tetapi detail bibliografi dan DOI perlu diverifikasi dari paper asli sebelum dimasukkan ke laporan final."}
+  ]
+}
