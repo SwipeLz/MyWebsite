@@ -1,6 +1,7 @@
 /* store.js — module persistensi: satu-satunya pemilik sisi-efek tulis.
    Memory kini (no-op aman); Firestore bila init() berhasil.
-   Interface: init(done), saveTelemetry(doc), saveEvent(kind, reason), isLive(). */
+   Interface: init(done), saveTelemetry(doc), saveEvent(doc), isLive().
+   Store tidak tahu bentuk dokumen — perakitan milik Barn; input tak pernah dimutasi. */
 
 (function (global) {
   "use strict";
@@ -36,19 +37,22 @@
     });
   }
 
+  function stamped(doc) {
+    var out = {};
+    Object.keys(doc).forEach(function (k) { out[k] = doc[k]; });
+    out.t = global.firebase.firestore.FieldValue.serverTimestamp();
+    return out;
+  }
+
   function saveTelemetry(doc) {
     if (!db) return false;
-    doc.t = global.firebase.firestore.FieldValue.serverTimestamp();
-    db.collection("telemetry").add(doc).catch(function () {});
+    db.collection("telemetry").add(stamped(doc)).catch(function () {});
     return true;
   }
 
-  function saveEvent(kind, reason) {
+  function saveEvent(doc) {
     if (!db) return false;
-    db.collection("events").add({
-      t: global.firebase.firestore.FieldValue.serverTimestamp(),
-      kind: kind, reason: reason, synthetic: true
-    }).catch(function () {});
+    db.collection("events").add(stamped(doc)).catch(function () {});
     return true;
   }
 

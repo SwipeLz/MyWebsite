@@ -21,7 +21,7 @@ service cloud.firestore {
         && request.resource.data.lying is int
         && request.resource.data.occluded is int
         && (request.resource.data.standing + request.resource.data.lying
-            + request.resource.data.occluded) == 16
+            + request.resource.data.occluded) == 16 // samakan Barn.HERD bila kawanan berubah
         && zoneMapOk(request.resource.data.zones)
         && request.resource.data.pump in ["mati", "menyemprot"]
         && request.resource.data.fan in ["mati", "menyala", "pengeringan"]

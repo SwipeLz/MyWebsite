@@ -109,7 +109,7 @@
       s.cooldownUntil = now + Barn.CYCLE.pumpMs + Barn.CYCLE.dryMs;
       s.pump = "menyemprot"; s.fan = "menyala";
       log("SIKLUS MULAI — " + why);
-      Store.saveEvent("cycle_start", why);
+      Store.saveEvent(Barn.eventDoc("cycle_start", why));
     }
 
     el("btn-override").addEventListener("click", function () {

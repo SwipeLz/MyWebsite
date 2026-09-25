@@ -14,8 +14,12 @@ describe("store mode lokal", () => {
       done();
     });
   });
-  it("tulis tanpa db → false, tidak melempar", () => {
-    assert.equal(Store.saveTelemetry({ thi: 70 }), false);
-    assert.equal(Store.saveEvent("cycle_start", "tes"), false);
+  it("tulis tanpa db → false, input tak dimutasi", () => {
+    const tele = { thi: 70 };
+    const ev = { kind: "cycle_start", reason: "tes", synthetic: true };
+    assert.equal(Store.saveTelemetry(tele), false);
+    assert.equal(Store.saveEvent(ev), false);
+    assert.deepEqual(tele, { thi: 70 });
+    assert.deepEqual(ev, { kind: "cycle_start", reason: "tes", synthetic: true });
   });
 });
